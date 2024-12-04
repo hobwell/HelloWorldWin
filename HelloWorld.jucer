@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <JUCERPROJECT id="QiCLsc" name="HelloWorld" projectType="guiapp" useAppConfig="0"
-              addUsingNamespaceToJuceHeader="0" jucerFormatVersion="1">
+              addUsingNamespaceToJuceHeader="0" jucerFormatVersion="1" companyName="PFMCPP">
   <MAINGROUP id="fVA0pj" name="HelloWorld">
     <GROUP id="{115ABE4E-F220-AEA4-2840-D7A47DC92600}" name="Source">
       <FILE id="oXGF8X" name="Main.cpp" compile="1" resource="0" file="Source/Main.cpp"/>
