@@ -26,40 +26,24 @@ struct Widget : public juce::Component
 
 //==============================================================================
 // owned array component template:
-struct OwnedArrayComponent : public juce::Component
+struct OwnedArrayComponent : public juce::Component, juce::Button::Listener
 {
-    OwnedArrayComponent() 
-    {
-        for (int i = 0; i < 10; ++i)
-        {
-            addWidget();
-        }
-    }
+    OwnedArrayComponent();
 
-    void addWidget()
-    {
-        addAndMakeVisible (widgets.add (new Widget (widgets.size())));
-    }
+    ~OwnedArrayComponent() override;
+
+    void addTextButton();
+
+    void buttonClicked(juce::Button* button) override;
 
     void paint(juce::Graphics& g) override
     {
         g.fillAll(juce::Colours::purple);
     }
 
-    void resized() override
-    {
-        auto width = getWidth() / static_cast<float> (widgets.size());
-        auto height = getHeight();
-        int x = 0;
+    void resized() override;
 
-        for (auto* widget : widgets)
-        {
-            widget->setBounds(x, 0, width, height);
-            x += width;
-        }
-    }
-
-    juce::OwnedArray<Widget> widgets;
+    juce::OwnedArray<juce::TextButton> buttons;
 };
 
 
@@ -110,17 +94,22 @@ public:
     //==============================================================================
     void mouseEnter (const juce::MouseEvent& event) override
     {
-        DBG("MainComponent mouse enter");
+        //DBG("MainComponent mouse enter");
     }
 
     void mouseExit(const juce::MouseEvent& event) override
     {
-        DBG("MainComponent mouse exit");
+        //DBG("MainComponent mouse exit");
     }
 
     void mouseMove(const juce::MouseEvent& event) override
     {
-        DBG("MainComponent mouse move " << ++counter);
+        //DBG("MainComponent mouse move " << ++counter);
+    }
+
+    void mouseDown(const juce::MouseEvent& event) override
+    {
+        DBG("mouse down");
     }
 
     void paint (juce::Graphics&) override;

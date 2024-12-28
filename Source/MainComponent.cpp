@@ -1,19 +1,74 @@
 #include "MainComponent.h"
 
+OwnedArrayComponent::OwnedArrayComponent()
+{
+    for (int i = 0; i < 10; ++i)
+    {
+        addTextButton();
+    }
+}
+
+OwnedArrayComponent::~OwnedArrayComponent()
+{
+    for (auto* button : buttons)
+    {
+        button->removeListener (this);
+    }
+    buttons.clear();
+}
+
+void OwnedArrayComponent::addTextButton()
+{
+    auto* component = buttons.add (new juce::TextButton (std::to_string (buttons.size())));
+    addAndMakeVisible (component);
+    component->addListener (this);
+}
+
+void OwnedArrayComponent::buttonClicked(juce::Button* clickedButton)
+{
+    if (clickedButton == buttons.getFirst())
+    {
+        DBG("First button clicked");
+    }
+    else if (clickedButton == buttons.getLast())
+    {
+        DBG("Last button clicked");
+    }
+    else
+    {
+        DBG("Button " << clickedButton->getName() << " clicked");
+    }
+}
+
+void OwnedArrayComponent::resized()
+{
+    auto width = getWidth() / static_cast<float> (buttons.size());
+    auto height = getHeight();
+    int x = 0;
+
+    for (auto* widget : buttons)
+    {
+        widget->setBounds(x, 0, width, height);
+        x += width;
+    }
+}
+
 //==============================================================================
 MainComponent::MainComponent()
 {
 
     addAndMakeVisible(exComp);
-    exComp.addMouseListener(this, false); // forwards mouse events from MainComponent to ExampleComponent
-    
+    //exComp.addMouseListener(this, false); // forwards mouse events from ExampleComponent to MainComponent
+
     addAndMakeVisible(ownedArrayComp);
+    ownedArrayComp.addMouseListener(this, true); // forwards mouse events from OwnedArrayComponent to MainComponent
 
     setSize (600, 400);
 }
 
 MainComponent::~MainComponent()
 {
+    exComp.removeMouseListener(this);
 }
 
 //==============================================================================
