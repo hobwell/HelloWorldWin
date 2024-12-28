@@ -3,10 +3,13 @@
 //==============================================================================
 MainComponent::MainComponent()
 {
-    setSize (600, 400);
 
     addAndMakeVisible(exComp);
     exComp.addMouseListener(this, false); // forwards mouse events from MainComponent to ExampleComponent
+    
+    addAndMakeVisible(ownedArrayComp);
+
+    setSize (600, 400);
 }
 
 MainComponent::~MainComponent()
@@ -29,5 +32,6 @@ void MainComponent::resized()
     // This is called when the MainComponent is resized.
     // If you add any child components, this is where you should
     // update their positions.
-    exComp.setBounds(100, 100, 50, 50);
+    exComp.setBounds(50, 50, 100, 100);
+    ownedArrayComp.setBounds(exComp.getX(), exComp.getBottom(), getWidth() - exComp.getX(), getHeight() - exComp.getBottom());
 }
