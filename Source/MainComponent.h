@@ -35,6 +35,55 @@ struct Widget : public juce::Component
 
     int index;
 };
+//==============================================================================
+// async updater
+struct AsyncHiResGui : public juce::Component, juce::AsyncUpdater, juce::HighResolutionTimer
+{
+    AsyncHiResGui()
+    {
+        startTimer(1000 / 5);
+    }
+
+    ~AsyncHiResGui() override
+    {
+        stopTimer();
+        cancelPendingUpdate();
+    }
+
+    
+    void hiResTimerCallback() override 
+    {
+        triggerAsyncUpdate();
+    };
+
+    void handleAsyncUpdate() override
+    {
+        paintColour = (paintColour + 1) % maxColours;
+        repaint();
+    }
+
+    void paint(juce::Graphics& g) override
+    {
+        switch (paintColour)
+        {
+        case 0:
+            g.setColour(juce::Colours::orange);
+            break;
+        case 1:
+            g.setColour(juce::Colours::purple);
+            break;
+        case 2:
+            g.setColour(juce::Colours::grey);
+            break;
+        }
+        g.fillAll();
+    }
+
+private:
+    int paintColour = 0;
+    const int maxColours {3};
+
+};
 
 //==============================================================================
 // repeating thing
@@ -157,6 +206,7 @@ private:
     OwnedArrayComponent ownedArrayComp;
     RepeatingThing repeatingThing;
     DualButton dualButton;
+    AsyncHiResGui hiResGui;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainComponent)
 };

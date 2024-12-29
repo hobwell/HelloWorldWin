@@ -105,6 +105,8 @@ MainComponent::MainComponent()
 
     addAndMakeVisible (repeatingThing);
 
+    addAndMakeVisible (hiResGui);
+
     setSize (600, 400);
 }
 
@@ -134,4 +136,5 @@ void MainComponent::resized()
     dualButton.setBounds(exComp.getRight(), exComp.getY(), exComp.getWidth(), exComp.getHeight());
     dualButton.setBounds(exComp.getBounds().withX(exComp.getRight() + 5));
     repeatingThing.setBounds(dualButton.getBounds().withX(dualButton.getRight() + 5));
+    hiResGui.setBounds(repeatingThing.getBounds().withX(repeatingThing.getRight() + 5));
 }
