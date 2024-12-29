@@ -32,6 +32,28 @@ struct Widget : public juce::Component
     int index;
 };
 
+//==============================================================================
+// repeating thing
+struct RepeatingThing : public juce::Component, juce::Timer
+{
+    RepeatingThing() { startTimerHz(2); };
+    ~RepeatingThing() { stopTimer(); };
+
+    void paint(juce::Graphics& g) override
+    {
+        g.fillAll(drawOrange ? juce::Colours::orange : juce::Colours::purple);
+    }
+
+    void timerCallback() override
+    {
+        drawOrange = !drawOrange;
+        repaint();
+    }
+
+private:
+    bool drawOrange = true;
+};
+
 
 //==============================================================================
 // owned array component template:
@@ -130,6 +152,7 @@ private:
     ExampleComponent exComp;
     OwnedArrayComponent ownedArrayComp;
     DualButton dualButton;
+    RepeatingThing repeatingThing;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainComponent)
 };
