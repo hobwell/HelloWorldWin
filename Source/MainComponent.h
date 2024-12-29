@@ -2,11 +2,15 @@
 
 #include <JuceHeader.h>
 
-
+struct RepeatingThing;
 struct DualButton : public juce::Component
 {
     DualButton();
     void resized() override;
+
+    void setHandler1(std::function<void()> handler);
+    void setHandler2(std::function<void()> handler);
+
 private:
     juce::TextButton button1{ "Button 1" };
     juce::TextButton button2{ "Button 2" };
@@ -151,8 +155,8 @@ private:
     // Your private member variables go here...
     ExampleComponent exComp;
     OwnedArrayComponent ownedArrayComp;
-    DualButton dualButton;
     RepeatingThing repeatingThing;
+    DualButton dualButton;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainComponent)
 };
