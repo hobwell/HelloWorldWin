@@ -4,6 +4,8 @@
               addUsingNamespaceToJuceHeader="0" jucerFormatVersion="1">
   <MAINGROUP id="fVA0pj" name="HelloWorld">
     <GROUP id="{115ABE4E-F220-AEA4-2840-D7A47DC92600}" name="Source">
+      <FILE id="ljinGB" name="DataRace.cpp" compile="1" resource="0" file="Source/DataRace.cpp"/>
+      <FILE id="vOkphw" name="DataRace.h" compile="0" resource="0" file="Source/DataRace.h"/>
       <FILE id="oXGF8X" name="Main.cpp" compile="1" resource="0" file="Source/Main.cpp"/>
       <FILE id="aqvbrC" name="MainComponent.h" compile="0" resource="0" file="Source/MainComponent.h"/>
       <FILE id="agiQDl" name="MainComponent.cpp" compile="1" resource="0"

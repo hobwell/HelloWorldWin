@@ -1,6 +1,7 @@
 #pragma once
 
 #include <JuceHeader.h>
+#include "DataRace.h"
 
 //==============================================================================
 // thread sample:
@@ -299,7 +300,7 @@ private:
     RepeatingThing repeatingThing;
     DualButton dualButton;
     AsyncHiResGui hiResGui;
-    Renderer renderer;
-
+    //Renderer renderer;
+    Test Test;
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainComponent)
 };
