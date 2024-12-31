@@ -46,3 +46,13 @@ struct Test
     A a{ data };
     B b{ data };
 };
+
+//==============================================================================
+struct LockingStruct
+{
+    void threadAFunc();
+    void threadBFunc();
+
+    int dataMember = 0;
+    juce::CriticalSection criticalSection;
+};

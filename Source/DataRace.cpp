@@ -67,3 +67,22 @@ void B::run()
         wait(10);
     }
 }
+
+//==============================================================================
+void LockingStruct::threadAFunc()
+{
+    {
+        const juce::ScopedLock sl(criticalSection);
+        dataMember = 2;
+    }
+    DBG("thread A Func" << dataMember);
+}
+
+void LockingStruct::threadBFunc()
+{
+    {
+        const juce::ScopedLock sl(criticalSection);
+        dataMember = 0;
+    }
+    DBG("thread B Func" << dataMember);
+}

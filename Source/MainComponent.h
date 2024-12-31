@@ -55,15 +55,16 @@ struct MyThread : juce::Thread
 // image processing thread
 struct ImageProcessingThread : juce::Thread
 {
-    ImageProcessingThread(int width_, int height_);
+    using ImagePassingFunc = std::function<void(juce::Image&, ImageProcessingThread& thread)>;
+    ImageProcessingThread(int width_, int height_, ImagePassingFunc f);
     ~ImageProcessingThread();
     void run() override;
-    void setUpdateRenderer(std::function<void(juce::Image&&)> func);
+    //setUpdateRenderer(std::function<void(juce::Image&&)> func);
 private:
     int width{ 0 };
     int height{ 0 };
     juce::Random rand;
-    std::function<void(juce::Image&&)> updateRenderer;
+    ImagePassingFunc updateRenderer;
 };
 
 //==============================================================================
@@ -78,20 +79,42 @@ private:
 };
 
 //==============================================================================
+// image buffer
+template <int Max> // varying size ImageBuffer?
+struct ImageBuffer
+{
+    void push(juce::Image image)
+    {
+        const juce::ScopedWriteLock swl(readWriteLock);
+        images[(++index) % Max] = image;
+    }
+    juce::Image read()
+    {
+        const juce::ScopedReadLock srl(readWriteLock);
+        return images[index % Max];
+    }
+private:
+    juce::ReadWriteLock readWriteLock;
+    size_t index = 0;
+    std::array<juce::Image, Max> images;
+};
+
+//==============================================================================
 // renderer
 // when can this be created? After the component that it is tied to has been added and sized
 #include <array>
-struct Renderer : public juce::Component, juce::AsyncUpdater
+struct Renderer : public juce::Component, juce::Timer
 {
     Renderer();
     ~Renderer() override;
     void paint(juce::Graphics& g) override;
-    void handleAsyncUpdate() override;
+    void timerCallback() override;
 private:
     std::unique_ptr<ImageProcessingThread> processingThread;
     std::unique_ptr<LambdaTimer> timer;
-    bool firstImage = true;
-    std::array<juce::Image, 2> imageToRender;
+    //juce::Atomic<bool> firstImage{ true };
+    //std::array<juce::Image, 2> imageToRender;
+    ImageBuffer<5> imageBuffer;
 };
 //==============================================================================
 // dual button:
@@ -300,7 +323,7 @@ private:
     RepeatingThing repeatingThing;
     DualButton dualButton;
     AsyncHiResGui hiResGui;
-    //Renderer renderer;
-    Test Test;
+    Renderer renderer;
+    // Test Test;
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainComponent)
 };

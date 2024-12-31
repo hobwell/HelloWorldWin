@@ -2,10 +2,11 @@
 
 //==============================================================================
 // image processing thread
-ImageProcessingThread::ImageProcessingThread(int width_, int height_) :
+ImageProcessingThread::ImageProcessingThread(int width_, int height_, ImagePassingFunc f) :
     Thread("ImageProcessingThread"),
     width(width_),
-    height(height_)
+    height(height_),
+    updateRenderer ( std::move(f))
 {
     startThread();
 }
@@ -47,17 +48,17 @@ void ImageProcessingThread::run()
 
         if (updateRenderer)
         {
-            updateRenderer(std::move(canvas));
+            updateRenderer(canvas, *this);
         }
 
         wait(-1);
     }
 }
 
-void ImageProcessingThread::setUpdateRenderer(std::function<void(juce::Image&&)> func)
-{
-    updateRenderer = std::move(func);
-}
+//void ImageProcessingThread::setUpdateRenderer(std::function<void(juce::Image&&)> func)
+//{
+//    updateRenderer = std::move(func);
+//}
 //==============================================================================
 // custom timer
 LambdaTimer::LambdaTimer(int ms, std::function<void()> func) :
@@ -87,44 +88,52 @@ Renderer::Renderer()
     timer = std::make_unique<LambdaTimer>(10, 
         [this]()
         {
-            processingThread = std::make_unique<ImageProcessingThread>(getWidth(), getHeight());
-
-            processingThread->setUpdateRenderer(
-                [this](juce::Image&& image)
+            processingThread = std::make_unique<ImageProcessingThread>(
+                getWidth(), 
+                getHeight(),
+                [this](juce::Image& image, ImageProcessingThread& thread)
                 {
-                    int renderIndex = firstImage ? 0 : 1;
-                    firstImage = !firstImage;
-                    imageToRender[renderIndex] = std::move(image);
+                   /* bool whichIndex = firstImage.get();
+                    int renderIndex = whichIndex ? 0 : 1;
+                    firstImage = !whichIndex;
+                    imageToRender[renderIndex] = image;*/
+                    imageBuffer.push(image);
+                    //triggerAsyncUpdate();
 
-                    triggerAsyncUpdate();
-
-                    timer = std::make_unique<LambdaTimer>(1000,
-                        [this]()
-                        {
-                            processingThread->notify();
-                        }
-                    );
+                    // alt: // this->processingThread->threadShouldExit();
+                    if (!thread.threadShouldExit())
+                    {
+                        timer = std::make_unique<LambdaTimer>(1000,
+                            [this]()
+                            {
+                                processingThread->notify();
+                            }
+                        );
+                    }
                 }
             );
         }
     );
+
+    startTimerHz(20);
 }
 
 Renderer::~Renderer()
 {
+    timer.reset(nullptr);
     processingThread.reset();
-    timer.reset();
 }
 
 void Renderer::paint(juce::Graphics& g)
 {
-    g.drawImage (
-        (firstImage ? imageToRender[0] : imageToRender[1]),
-        getLocalBounds().toFloat()
-    );
+    //g.drawImage (
+    //    (firstImage.get() ? imageToRender[0] : imageToRender[1]),
+    //    getLocalBounds().toFloat()
+    //);
+    g.drawImage (imageBuffer.read(), getLocalBounds().toFloat());
 }
 
-void Renderer::handleAsyncUpdate()
+void Renderer::timerCallback()
 {
     repaint();
 }
@@ -238,7 +247,7 @@ MainComponent::MainComponent()
 
     addAndMakeVisible (hiResGui);
 
-    //addAndMakeVisible(renderer);
+    addAndMakeVisible(renderer);
 
     setSize (600, 400);
 }
@@ -270,5 +279,5 @@ void MainComponent::resized()
     dualButton.setBounds(exComp.getBounds().withX(exComp.getRight() + 5));
     repeatingThing.setBounds(dualButton.getBounds().withX(dualButton.getRight() + 5));
     hiResGui.setBounds(repeatingThing.getBounds().withX(repeatingThing.getRight() + 5));
-    //renderer.setBounds(hiResGui.getBounds().withX(hiResGui.getRight() + 5));
+    renderer.setBounds(hiResGui.getBounds().withX(hiResGui.getRight() + 5));
 }
