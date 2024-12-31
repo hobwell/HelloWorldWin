@@ -2,6 +2,98 @@
 
 #include <JuceHeader.h>
 
+//==============================================================================
+// thread sample:
+struct MyThread : juce::Thread
+{
+    MyThread() : Thread("MyThread") 
+    {
+        startThread(); // calls run() method
+    }
+
+    ~MyThread() override 
+    { 
+        stopThread(100); 
+    }
+
+    void run() override
+    {
+        
+        while (true)
+        {
+            if (threadShouldExit()) // returns true if thread should exit
+                break;
+
+            /*
+             do some work here
+            */
+
+            if (threadShouldExit()) // returns true if thread should exit
+                break;
+
+            /*
+             do some work here
+            */
+
+            if (threadShouldExit()) // returns true if thread should exit
+                break;
+
+            wait(10); // waits for 10 milliseconds
+            // or
+            wait(-1); // waits indefinitely
+
+            /* from outside:
+             MyThread mt;
+             mt.notify(); // notifies the thread
+            */
+        }
+    }
+};
+
+//==============================================================================
+// image processing thread
+struct ImageProcessingThread : juce::Thread
+{
+    ImageProcessingThread(int width_, int height_);
+    ~ImageProcessingThread();
+    void run() override;
+    void setUpdateRenderer(std::function<void(juce::Image&&)> func);
+private:
+    int width{ 0 };
+    int height{ 0 };
+    juce::Random rand;
+    std::function<void(juce::Image&&)> updateRenderer;
+};
+
+//==============================================================================
+// example custom timer
+struct LambdaTimer : juce::Timer
+{
+    LambdaTimer(int ms, std::function<void()> func);
+    ~LambdaTimer();
+    void timerCallback() override;
+private:
+    std::function<void()> callback;
+};
+
+//==============================================================================
+// renderer
+// when can this be created? After the component that it is tied to has been added and sized
+#include <array>
+struct Renderer : public juce::Component, juce::AsyncUpdater
+{
+    Renderer();
+    ~Renderer() override;
+    void paint(juce::Graphics& g) override;
+    void handleAsyncUpdate() override;
+private:
+    std::unique_ptr<ImageProcessingThread> processingThread;
+    std::unique_ptr<LambdaTimer> timer;
+    bool firstImage = true;
+    std::array<juce::Image, 2> imageToRender;
+};
+//==============================================================================
+// dual button:
 struct RepeatingThing;
 struct DualButton : public juce::Component
 {
@@ -207,6 +299,7 @@ private:
     RepeatingThing repeatingThing;
     DualButton dualButton;
     AsyncHiResGui hiResGui;
+    Renderer renderer;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainComponent)
 };
