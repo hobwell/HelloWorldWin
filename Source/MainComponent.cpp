@@ -25,26 +25,13 @@ void ImageProcessingThread::run()
 
         auto canvas = juce::Image(juce::Image::RGB, width, height, true);
 
-        if (threadShouldExit())
-            break;
-
-        bool shouldExit = false;
         for (int x = 0; x < width; ++x)
         {
-            if (threadShouldExit())
-            {
-                shouldExit = true;
-                break;
-            }
-
             for (int y = 0; y < height; ++y)
             {
                 canvas.setPixelAt(x, y, juce::Colour(rand.nextFloat(), rand.nextFloat(), rand.nextFloat(), 1.f));
             }
         }
-
-        if (threadShouldExit() || shouldExit)
-            break;
 
         if (updateRenderer)
         {
@@ -55,10 +42,6 @@ void ImageProcessingThread::run()
     }
 }
 
-//void ImageProcessingThread::setUpdateRenderer(std::function<void(juce::Image&&)> func)
-//{
-//    updateRenderer = std::move(func);
-//}
 //==============================================================================
 // custom timer
 LambdaTimer::LambdaTimer(int ms, std::function<void()> func) :
@@ -93,12 +76,7 @@ Renderer::Renderer()
                 getHeight(),
                 [this](juce::Image& image, ImageProcessingThread& thread)
                 {
-                   /* bool whichIndex = firstImage.get();
-                    int renderIndex = whichIndex ? 0 : 1;
-                    firstImage = !whichIndex;
-                    imageToRender[renderIndex] = image;*/
                     imageBuffer.push(image);
-                    //triggerAsyncUpdate();
 
                     // alt: // this->processingThread->threadShouldExit();
                     if (!thread.threadShouldExit())
@@ -126,10 +104,6 @@ Renderer::~Renderer()
 
 void Renderer::paint(juce::Graphics& g)
 {
-    //g.drawImage (
-    //    (firstImage.get() ? imageToRender[0] : imageToRender[1]),
-    //    getLocalBounds().toFloat()
-    //);
     g.drawImage (imageBuffer.read(), getLocalBounds().toFloat());
 }
 
@@ -138,6 +112,47 @@ void Renderer::timerCallback()
     repaint();
 }
 
+//==============================================================================
+//
+Renderer2::Renderer2()
+{
+    juce::Timer::callAfterDelay(10, [this]() { loop(); });
+}
+
+void Renderer2::paint(juce::Graphics& g)
+{
+    g.drawImage (imageBuffer.read(), getLocalBounds().toFloat());
+}
+
+void Renderer2::loop()
+{
+    auto width = this->getWidth();
+    auto height = this->getHeight();
+
+    juce::Thread::launch(
+        [this, width, height]()
+        {
+            juce::Random rand;
+
+            auto canvas = juce::Image(juce::Image::RGB, width, height, true);
+
+            for (int x = 0; x < width; ++x)
+            {
+                for (int y = 0; y < height; ++y)
+                {
+                    canvas.setPixelAt(x, y, juce::Colour(rand.nextFloat(), rand.nextFloat(), rand.nextFloat(), 1.f));
+                }
+            }
+
+            imageBuffer.push(canvas);
+
+            juce::Timer::callAfterDelay(10, [this]() { repaint(); });
+            juce::Timer::callAfterDelay(1000, [this]() { loop(); });
+        }
+    );
+
+    
+}
 //==============================================================================
 //
 DualButton::DualButton()
@@ -248,8 +263,10 @@ MainComponent::MainComponent()
     addAndMakeVisible (hiResGui);
 
     addAndMakeVisible(renderer);
+    
+    addAndMakeVisible(renderer2);
 
-    setSize (600, 400);
+    setSize (800, 400);
 }
 
 MainComponent::~MainComponent()
@@ -280,4 +297,5 @@ void MainComponent::resized()
     repeatingThing.setBounds(dualButton.getBounds().withX(dualButton.getRight() + 5));
     hiResGui.setBounds(repeatingThing.getBounds().withX(repeatingThing.getRight() + 5));
     renderer.setBounds(hiResGui.getBounds().withX(hiResGui.getRight() + 5));
+    renderer2.setBounds(renderer.getBounds().withX(renderer.getRight() + 5));
 }

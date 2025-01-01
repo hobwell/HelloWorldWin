@@ -112,8 +112,19 @@ struct Renderer : public juce::Component, juce::Timer
 private:
     std::unique_ptr<ImageProcessingThread> processingThread;
     std::unique_ptr<LambdaTimer> timer;
-    //juce::Atomic<bool> firstImage{ true };
-    //std::array<juce::Image, 2> imageToRender;
+    ImageBuffer<5> imageBuffer;
+};
+
+//==============================================================================
+// renderer2
+// when can this be created? After the component that it is tied to has been added and sized
+#include <array>
+struct Renderer2 : public juce::Component
+{
+    Renderer2();
+    void paint(juce::Graphics& g) override;
+private:
+    void loop();
     ImageBuffer<5> imageBuffer;
 };
 //==============================================================================
@@ -324,6 +335,7 @@ private:
     DualButton dualButton;
     AsyncHiResGui hiResGui;
     Renderer renderer;
+    Renderer2 renderer2;
     // Test Test;
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainComponent)
 };
